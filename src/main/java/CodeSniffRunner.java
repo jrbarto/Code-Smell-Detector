@@ -6,7 +6,7 @@ public class CodeSniffRunner {
 
 	/**
 	 * pass in arguments of groovyFile and source file for now
-	 * e.g. 'java CodeSniffRunner
+	 * e.g. 'java CodeSniffRunner groovyFile sourceFile'
 	 */
 	public static void main(String[] args) {
 		String groovyFile = args[1];
