@@ -17,7 +17,7 @@ Building the code:
 - Once you have ant installed, go to the main directory of the CodeSniffer project. ('./Code-Smell-Detector') and enter the command 'ant'.
 - The ant command will run the 'main' target in the build.xml file, which will compile the code and package it into a jar file in the './Code-Smell-Detector/dist' directory.
 
-Running the code (this is for testing, and used for testing since we haven't implemented it as a github application yet):
+Running the code (this is solely for testing purposes currently since we haven't implemented it as a github application yet):
 - Prerequisites:
   - You must have groovy and java installed. (Also you should try to install a jdk version of java if you can, because you will have trouble tracking errors if you don't)
 - Navigate to the './CodeSmellDetector/dist' directory and you will find a 'CodeSniffer-<timestamp>.jar' file.
