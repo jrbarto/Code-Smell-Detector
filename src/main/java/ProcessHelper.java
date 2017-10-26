@@ -28,10 +28,14 @@ public class ProcessHelper {
 		try {
 			process = pb.start();
 			process.getOutputStream().close(); // close stdin
-
+			process.waitFor();
 		}
 		catch (IOException ex) {
 			System.out.println("[Error] Failed to execute command " + command.toString());
+			ex.printStackTrace();
+		}
+		catch (InterruptedException ex) {
+			System.out.println("[Error] Thread was interrupted while waiting for process to finish.");
 			ex.printStackTrace();
 		}
 		finally {

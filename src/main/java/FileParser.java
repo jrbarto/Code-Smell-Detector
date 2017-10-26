@@ -8,9 +8,8 @@ public class FileParser {
 	File sourceFile;
 
 	public FileParser(String groovyArg, String sourceArg) {
-		groovyDir = new File(".", "src/main/groovy");
-		File groovyFile = new File(groovyDir, groovyArg);
-		File sourceFile = new File(sourceArg);
+		groovyFile = new File(groovyArg);
+		sourceFile = new File(sourceArg);
 
 		if (!groovyFile.exists() || !groovyFile.isFile()) {
 			System.out.println("[Error] Groovy file " + groovyFile.getAbsolutePath() + " doesn't exist.");

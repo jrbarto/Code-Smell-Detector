@@ -9,14 +9,13 @@ public class CodeSniffRunner {
 	 * e.g. 'java CodeSniffRunner groovyFile sourceFile'
 	 */
 	public static void main(String[] args) {
-		String groovyFile = args[1];
-		String sourceFile = args[2];
-		File f = new File(".", "src/main/groovy");
+		String groovyFile = args[0];
+		String sourceFile = args[1];
 		/*
 		 * temporarily hard coded REST client setup
 		 * just a test user to prove the concept of the REST client
 		 */
-		GHRestClient restClient = new GHRestClient("snifftestuser", "password123", "https://api.github.com");
+		GHRestClient restClient = new GHRestClient("https://api.github.com", "snifftestuser", "password123");
 
 		FileParser parser = new FileParser(groovyFile, sourceFile);
 		parser.runGroovyCommand();

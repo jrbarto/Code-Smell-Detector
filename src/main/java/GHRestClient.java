@@ -36,6 +36,7 @@ public class GHRestClient {
 
 		// check for malformed URL
 		if (!serverUrl.isEmpty() && serverUrl != null) {
+			System.out.println("substring is " + serverUrl.substring(0, 7));
 			if (!serverUrl.substring(0, 7).equalsIgnoreCase("http://")
 					&& !serverUrl.substring(0, 8).equalsIgnoreCase("https://"))
 			{
