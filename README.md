@@ -20,9 +20,9 @@ Building the code:
 Running the code (this is solely for testing purposes currently since we haven't implemented it as a github application yet):
 - Prerequisites:
   - You must have groovy and java installed. (Also you should try to install a jdk version of java if you can, because you will have trouble tracking errors if you don't)
-- Navigate to the './CodeSmellDetector/dist' directory and you will find a 'CodeSniffer-<timestamp>.jar' file.
-- Execute the command 'java -jar CodeSniffer-<timestamp>.jar <arg1> <arg2>' to execute the jar file.
-- The <arg1> and <arg2> arguments are passed to the main class of the jar file (which is CodeSniffRunner). <arg1> is the full path of the groovy file that you will be using to analyze <arg2>. Hence, <arg2> is the source file that you will be analyzing.
-- A process will be kicked off on the command line (It will be executing 'groovy <arg1> <arg2>' (remember that arg1 is your groovy script and arg2 is the source file to analyze)
-- This means that the groovy script will take in an argument (<arg2>). So, write your scripts to accept a file argument for now.
+- Navigate to the './CodeSmellDetector/dist' directory and you will find a 'CodeSniffer-`<timestamp>`.jar' file.
+- Execute the command 'java -jar CodeSniffer-`<timestamp>`.jar `<arg1>` `<arg2>`' to execute the jar file.
+- The `<arg1>` and `<arg2>` arguments are passed to the main class of the jar file (which is CodeSniffRunner). `<arg1>` is the full path of the groovy file that you will be using to analyze `<arg2>`. Hence, `<arg2>` is the source file that you will be analyzing.
+- A process will be kicked off on the command line (It will be executing 'groovy `<arg1>` `<arg2>`' (remember that arg1 is your groovy script and arg2 is the source file to analyze)
+- This means that the groovy script will take in an argument (`<arg2>`). So, write your scripts to accept a file argument for now.
 - This code will allow you to test out parsing a file using a groovy script to find code smells.
