@@ -1,7 +1,9 @@
 package main.java;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 
@@ -28,7 +30,16 @@ public class ProcessHelper {
 		try {
 			process = pb.start();
 			process.getOutputStream().close(); // close stdin
-			process.waitFor();
+
+			// read process output
+			final BufferedReader reader = new BufferedReader(
+					new InputStreamReader(process.getInputStream()));
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				System.out.println(line);
+			}
+			reader.close();
+			process.waitFor(); // wait for process to complete
 		}
 		catch (IOException ex) {
 			System.out.println("[Error] Failed to execute command " + command.toString());
