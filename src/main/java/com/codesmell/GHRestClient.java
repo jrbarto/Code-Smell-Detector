@@ -1,4 +1,4 @@
-package main.java;
+package com.codesmell;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.StatusLine;

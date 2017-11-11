@@ -1,4 +1,4 @@
-package main.java;
+package com.codesmell;
 
 import java.io.File;
 
@@ -9,6 +9,12 @@ public class CodeSniffRunner {
 	 * e.g. 'java CodeSniffRunner groovyFile sourceFile'
 	 */
 	public static void main(String[] args) {
+		if (args.length < 2) {
+			System.out.println("[Error] Missing groovy file and source file arguments.\n"
+					+ "[Solution] Please run in the format 'CodeSniffer.jar /path/to/groovyfile /path/to/sourcefile'");
+			System.exit(1);
+		}
+
 		String groovyFile = args[0];
 		String sourceFile = args[1];
 		/*

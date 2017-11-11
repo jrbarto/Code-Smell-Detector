@@ -5,8 +5,11 @@
 
     <property name="projectName" value="CodeSniffer" />
 
-    <!-- Java sources -->
+    <!-- Sources -->
     <property name="src.dir" location="src" />
+    
+    <!-- Java sources -->
+    <property name="src.main.java.dir" location="${src.dir}/main/java" />
 
     <!-- Java classes -->
     <property name="build.dir" location="bin" />
@@ -37,7 +40,7 @@
     <target name="compile" depends="init" description="compile the source ">
         <!-- Compile the java code from ${src.dir} into ${build.dir} -->
     	<echo>${toString:classpath}</echo>
-        <javac includeantruntime="false" debug="true" srcdir="${src.dir}" destdir="${build.dir}" classpathref="build.classpath" />
+        <javac includeantruntime="false" debug="true" srcdir="${src.main.java.dir}" destdir="${build.dir}" classpathref="build.classpath" />
     </target>
 
     <target name="dist" depends="compile" description="package, output to JAR">
@@ -49,7 +52,7 @@
         <jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${build.dir}">
             <manifest>
             <!-- create an executable Jar -->
-            <attribute name="Main-Class" value="main.java.CodeSniffRunner" />
+            <attribute name="Main-Class" value="com.codesmell.CodeSniffRunner" />
             <attribute name="Class-Path" value="${lib.list}"/>
             </manifest>
         </jar>
