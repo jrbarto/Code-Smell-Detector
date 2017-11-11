@@ -25,7 +25,8 @@ public class FileParser {
 		ProcessHelper procHelper = new ProcessHelper(groovyDir);
 		String message = "Running groovy file " + groovyFile.getName() + " on source file " + sourceFile.getName();
 		String groovyCommand = "groovy"; // must be on system path, but will change in future updates
-		String[] args = {groovyCommand, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
+		String classpath = System.getProperty("java.class.path");
+		String[] args = {groovyCommand, "-cp", classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
 
 		// execute a new process with the given commmand line arguments
 		procHelper.runCommand(message, args);

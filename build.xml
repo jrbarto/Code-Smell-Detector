@@ -36,7 +36,7 @@
         <!-- Create the build directory structure used by compile -->
         <mkdir dir="${build.dir}" />
     </target>
-
+	
     <target name="compile" depends="init" description="compile the source ">
         <!-- Compile the java code from ${src.dir} into ${build.dir} -->
     	<echo>${toString:classpath}</echo>
@@ -55,6 +55,8 @@
             <attribute name="Main-Class" value="com.codesmell.CodeSniffRunner" />
             <attribute name="Class-Path" value="${lib.list}"/>
             </manifest>
+        	<!-- Include CodeParser API in the main jar to be used at runtime -->
+        	<zipgroupfileset dir="${lib.dir}" includes="CodeParser*.jar" />
         </jar>
     </target>
 
