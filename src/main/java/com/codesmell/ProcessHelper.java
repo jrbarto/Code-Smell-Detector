@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.Scanner;
 
 
 /**
@@ -28,18 +29,15 @@ public class ProcessHelper {
 		}
 
 		try {
+			File outputFile = File.createTempFile("output", ".tmp");
+			pb.redirectOutput(outputFile);
+			pb.redirectErrorStream();
 			process = pb.start();
-			process.getOutputStream().close(); // close stdin
-
-			// read process output
-			final BufferedReader reader = new BufferedReader(
-					new InputStreamReader(process.getInputStream()));
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
-			}
-			reader.close();
 			process.waitFor(); // wait for process to complete
+			Scanner input = new Scanner(outputFile);
+			while(input.hasNextLine()) {
+				System.out.println(input.nextLine());
+			}
 		}
 		catch (IOException ex) {
 			System.out.println("[Error] Failed to execute command " + command.toString());

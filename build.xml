@@ -1,6 +1,6 @@
-<project name="CodeParser" default="main" basedir=".">
+<project name="CodeSniffer" default="main" basedir=".">
     <description>
-        Create the Codeparser JAR with an Ant build script.
+        Create the CodeSniffer JAR with an Ant build script.
     </description>
 
     <property name="projectName" value="CodeSniffer" />
