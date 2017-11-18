@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Scanner;
+import java.util.Arrays;
 
 
 /**
@@ -40,7 +41,7 @@ public class ProcessHelper {
 			}
 		}
 		catch (IOException ex) {
-			System.out.println("[Error] Failed to execute command " + command.toString());
+			System.out.println("[Error] Failed to execute command " + Arrays.toString(command));
 			ex.printStackTrace();
 		}
 		catch (InterruptedException ex) {
