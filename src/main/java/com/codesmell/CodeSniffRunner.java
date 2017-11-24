@@ -1,6 +1,9 @@
 package com.codesmell;
 
 import java.io.File;
+import java.io.IOException;
+
+import org.codehaus.jettison.json.JSONException;
 
 public class CodeSniffRunner {
 
@@ -22,6 +25,19 @@ public class CodeSniffRunner {
 		 * just a test user to prove the concept of the REST client
 		 */
 		GHRestClient restClient = new GHRestClient("https://api.github.com", "snifftestuser", "password123");
+
+		try {
+			int latestRequestNum = restClient.getLatestPullRequest("jrbarto", "Sample-Repo");
+			System.out.println("LATEST REQUEST IS : " + latestRequestNum);
+		}
+		catch (IOException ex) {
+			ex.printStackTrace();
+			System.exit(1);
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			System.exit(1);
+		}
 
 		FileParser parser = new FileParser(groovyFile, sourceFile);
 		parser.runGroovyCommand();

@@ -14,7 +14,10 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-
+import org.apache.http.util.EntityUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 /**
  * Basic authentication REST client for GitHub to execute http commands
@@ -51,12 +54,47 @@ public class GHRestClient {
 	 * to do: methods to pull down code, add comments, create webhooks to repos
 	 */
 
+	public int getLatestPullRequest(String owner, String repoName) throws IOException, JSONException {
+		int requestNumber = 0;
+		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/pulls";
+		HttpGet request = new HttpGet(url);
+		CloseableHttpResponse response = doGetRequest(request);
+
+		JSONArray pullRequests = parseArrayResponse(response);
+		if (pullRequests.length() > 0) {
+			JSONObject latestPullRequest = pullRequests.getJSONObject(0);
+			requestNumber = latestPullRequest.getInt("number");
+		}
+
+		return requestNumber;
+	}
+
+	private JSONArray parseArrayResponse(CloseableHttpResponse response) throws IOException, JSONException {
+		String json = "";
+		JSONArray jsonArr;
+
+		try {
+			json = EntityUtils.toString(response.getEntity());
+			jsonArr = new JSONArray(json);
+		}
+		catch (IOException ex) {
+			System.out.println("[Error] Failed to parse entity response.");
+			throw ex;
+		}
+		catch (JSONException ex) {
+			System.out.println("[Error] Unable to convert string to JSON:\n " + json);
+			throw ex;
+		}
+
+		return jsonArr;
+	}
+
 	private CloseableHttpResponse doGetRequest(HttpGet request) {
 		CloseableHttpResponse response = doRequest(request);
 		StatusLine statusLine = response.getStatusLine();
 		int statusCode = statusLine.getStatusCode();
 
-		//unfinished
+		//unfinished... handle errors
 		return response;
 	}
 
