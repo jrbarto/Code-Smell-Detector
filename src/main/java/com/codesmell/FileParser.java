@@ -8,12 +8,13 @@ public class FileParser {
 	File sourceFile;
 	boolean isWindows;
 
-	public FileParser(String groovyArg, String sourceArg) {
+	public FileParser(String groovyArg, File sourceArg) {
 		String os = System.getProperty("os.name");
 		isWindows = os.toLowerCase().contains("windows");
 
 		groovyFile = new File(groovyArg);
-		sourceFile = new File(sourceArg);
+		//sourceFile = new File(sourceArg);
+		sourceFile = sourceArg;
 
 		if (!groovyFile.exists() || !groovyFile.isFile()) {
 			System.out.println("[Error] Groovy file " + groovyFile.getAbsolutePath() + " doesn't exist.");

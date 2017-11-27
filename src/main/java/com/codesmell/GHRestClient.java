@@ -9,7 +9,12 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.auth.AuthScope;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,6 +23,9 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import com.codesmell.gh.objects.PullRequest;
+import com.codesmell.gh.objects.Commit;
+import com.codesmell.gh.objects.GHFile;
 
 /**
  * Basic authentication REST client for GitHub to execute http commands
@@ -54,8 +62,9 @@ public class GHRestClient {
 	 * to do: methods to pull down code, add comments, create webhooks to repos
 	 */
 
-	public int getLatestPullRequest(String owner, String repoName) throws IOException, JSONException {
+	public PullRequest getLatestPullRequest(String owner, String repoName) throws IOException, JSONException {
 		int requestNumber = 0;
+		PullRequest pullRequest = null;
 		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/pulls";
 		HttpGet request = new HttpGet(url);
 		CloseableHttpResponse response = doGetRequest(request);
@@ -64,9 +73,49 @@ public class GHRestClient {
 		if (pullRequests.length() > 0) {
 			JSONObject latestPullRequest = pullRequests.getJSONObject(0);
 			requestNumber = latestPullRequest.getInt("number");
+			pullRequest = new PullRequest(requestNumber);
+			url += "/" + requestNumber + "/commits";
+			request = new HttpGet(url);
+			response = doGetRequest(request);
+			JSONArray commits = parseArrayResponse(response);
+
+			for (int i = 0; i < commits.length(); i++) {
+				JSONObject commitJson = commits.getJSONObject(i);
+				Commit newCommit = new Commit(commitJson.getString("sha"));
+				pullRequest.addCommit(newCommit);
+			}
+		}
+		else {
+			System.out.println("[OK] There are no pull requests for the " + owner + "/" + repoName + " repository.");
+			System.exit(0);
 		}
 
-		return requestNumber;
+		return pullRequest;
+	}
+
+	public ArrayList<GHFile> getCommitFiles(String owner, String repoName, Commit commit) throws JSONException, IOException {
+		ArrayList<GHFile> files = new ArrayList<>();
+		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/commits/" + commit.getSha();
+		HttpGet request = new HttpGet(url);
+		CloseableHttpResponse response = doGetRequest(request);
+
+		JSONObject commitJson = parseObjectResponse(response);
+		JSONArray filesJson = commitJson.getJSONArray("files");
+
+		for (int i = 0; i < filesJson.length(); i++) {
+			JSONObject fileJson = filesJson.getJSONObject(i);
+			url = fileJson.getString("contents_url");
+			request = new HttpGet(url);
+			request.addHeader("Accept", "application/vnd.github.VERSION.raw");
+			response = doGetRequest(request);
+			String path = fileJson.getString("filename");
+			String patchHeader = fileJson.getString("patch");
+			String contents = EntityUtils.toString(response.getEntity());
+			GHFile ghFile = new GHFile(path, contents, patchHeader);
+			files.add(ghFile);
+		}
+
+		return files;
 	}
 
 	private JSONArray parseArrayResponse(CloseableHttpResponse response) throws IOException, JSONException {
@@ -87,6 +136,26 @@ public class GHRestClient {
 		}
 
 		return jsonArr;
+	}
+
+	private JSONObject parseObjectResponse(CloseableHttpResponse response) throws IOException, JSONException {
+		String json = "";
+		JSONObject jsonObj;
+
+		try {
+			json = EntityUtils.toString(response.getEntity());
+			jsonObj = new JSONObject(json);
+		}
+		catch (IOException ex) {
+			System.out.println("[Error] Failed to parse entity response.");
+			throw ex;
+		}
+		catch (JSONException ex) {
+			System.out.println("[Error] Unable to convert string to JSON:\n " + json);
+			throw ex;
+		}
+
+		return jsonObj;
 	}
 
 	private CloseableHttpResponse doGetRequest(HttpGet request) {
