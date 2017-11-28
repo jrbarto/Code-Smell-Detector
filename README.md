@@ -10,7 +10,7 @@ Steps to make a commit:
 Quick code description:
 - CodeSniffRunner is the main class that will execute the FileParser and GHRestClient.
 - The FileParser will kick off a new groovy process using the ProcessHelper to execute a groovy script.
-- The GHRestClient will be our access to the Github REST API. All REST commands will go in there. So far I've only added authentication.
+- The GHRestClient will be our access to the Github REST API. All REST commands will go in there.
 
 Building the code:
 - You must install the 'ant' build tool. Here is in depth documentation on how to do so on Windows: https://www.mkyong.com/ant/how-to-install-apache-ant-on-windows/ On Linux: http://how-to.cc/install-ant-on-linux
@@ -22,7 +22,8 @@ Running the code (this is solely for testing purposes currently since we haven't
   - You must have groovy and java installed. (Also you should try to install a jdk version of java if you can, because you will have trouble tracking errors if you don't)
 - Navigate to the './CodeSmellDetector/dist' directory and you will find a 'CodeSniffer-`<timestamp>`.jar' file.
 - Execute the command 'java -jar CodeSniffer-`<timestamp>`.jar `<arg1>` `<arg2> <arg3>`' to execute the jar file.
-- The `<arg1>`, `<arg2>`, and <arg3> arguments are passed to the main class of the jar file (which is CodeSniffRunner). `<arg1>` is the full path of the groovy file that you will be using to analyze all files in the most recent pull request on a github repository. Hence, `<arg2>` is the owner of the repository to examine, and `<arg3>` is the name of the repository.
-- A process will be kicked off on the command line (It will be executing 'groovy `<arg1>` `<arg2>` `<arg3>`' (remember that arg1 is your groovy script, arg2 is the repository owner, and arg3 is the repository name.)
-- The groovy scripts will take in a source file as an argument. It will execute the script for each file in the pull request. So, groovy scripts must accept a file argument.
-- This code will parse all files in a GitHub pull requestusing a groovy script to find code smells.
+- The `<arg1>`, `<arg2>`, and `<arg3>` arguments are passed to the main class of the jar file (which is CodeSniffRunner). `<arg1>` is the full path of the groovy file that you will be using to analyze all files in the most recent pull request on a github repository. Hence, `<arg2>` is the owner of the repository to examine, and `<arg3>` is the name of the repository.
+- For example, I have created a sample repo to test with, and to analyze the most recent pull request to that repo I would do: 'java -jar dist/CodeSniffRunner.jar ../src/main/groovy/MethodTooManyArgs.groovy jrbarto Sample-Repo' and this will run the MethodTooManyArgs.groovy script on all files in the most recent pull request of the Sample-Repo repository on Github whose owner is jrbarto.
+- The groovy script will take in a single source file as an argument. The main program will execute the script for each file in the pull request. So, groovy scripts must accept a single file argument.
+- A process will be kicked off on the command line for each source file discovered in the most recent pull request (It will be executing 'groovy `<arg1>` `<src_file_n>`' for each of the 1 to n source files). We will probably run some of these concurrently in the future, but for now they are executed in linear fashion.
+- This code will parse all files in a GitHub pull request using a groovy script to find code smells (The abridged version of what I've said above).
