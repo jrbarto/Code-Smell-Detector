@@ -10,7 +10,7 @@ class LongMethodSniffer {
     static Bracket child_bracket;
     static Bracket[] child_bracket_array;
     static ArrayList long_methods_array = new ArrayList();
-    static final int MAX_METHOD_LENGTH = 3;
+    static final int MAX_METHOD_LENGTH = 25;
 
     public static void main(String[] args) {
         String input_file_name = args[0];
