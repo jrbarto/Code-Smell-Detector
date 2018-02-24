@@ -1,20 +1,10 @@
 package com.codesmell;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.StatusLine;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.auth.UsernamePasswordCredentials;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -22,14 +12,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -50,7 +35,6 @@ import com.codesmell.gh.objects.GHFile;
 public class GHRestClient {
 	CloseableHttpClient client; // client used to execute http requests
 	String serverUrl; // url of the github server
-	//HttpClientContext context; // used to preemtively authenticate
 	String authHeader;
 
 	public GHRestClient(String serverUrl, String username, String password) {
@@ -59,29 +43,8 @@ public class GHRestClient {
 		byte[] credentials = Base64.encodeBase64((username + ":" + password).getBytes(StandardCharsets.UTF_8));
 		authHeader = new String(credentials, StandardCharsets.UTF_8);
 
-		/* configure http client
-		CredentialsProvider provider = new BasicCredentialsProvider();
-		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
-		provider.setCredentials(AuthScope.ANY, credentials);
-		builder.setDefaultCredentialsProvider(provider);
-		 */
-
 		HttpClientBuilder builder = HttpClientBuilder.create();
 		client = builder.build();
-
-		/* HttpClient doesn't preemtively authenticates, first request is unauthenticated.
-		 * This will hit the unauthenticated limit of 60 requests per hour.
-		 * Creating authentication cache tricks server into thinking we've already connected before.
-		 *
-		AuthCache authCache = new BasicAuthCache();
-		BasicScheme basicAuth = new BasicScheme();
-		HttpHost targetHost = new HttpHost(this.serverUrl);
-		authCache.put(targetHost, basicAuth);
-
-		// Add AuthCache to the execution context
-		context = HttpClientContext.create();
-		context.setCredentialsProvider(provider);
-		context.setAuthCache(authCache);*/
 
 		// check for malformed URL
 		if (!serverUrl.isEmpty() && serverUrl != null) {
@@ -95,10 +58,15 @@ public class GHRestClient {
 		}
 	}
 
-	/*
-	 * to do: methods to pull down code, add comments, create webhooks to repos
+	/**
+	 * Construct and return the latest pull request on the repository.
+	 *
+	 * @param owner
+	 * @param repoName
+	 * @return
+	 * @throws IOException
+	 * @throws JSONException
 	 */
-
 	public PullRequest getLatestPullRequest(String owner, String repoName) throws IOException, JSONException {
 		/* Get all pull requests on the repo */
 		int requestNumber = 0;
@@ -142,7 +110,9 @@ public class GHRestClient {
 		return pullRequest;
 	}
 
-	public ArrayList<GHFile> getPullRequestFiles(String owner, String repoName, PullRequest pullRequest) throws JSONException, IOException {
+	public ArrayList<GHFile> getPullRequestFiles(String owner, String repoName, PullRequest pullRequest)
+			throws JSONException, IOException
+	{
 		ArrayList<GHFile> files = new ArrayList<>();
 		Commit latestCommit = pullRequest.getLatestCommit();
 		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/pulls/" + pullRequest.getNumber() + "/files";
@@ -167,6 +137,18 @@ public class GHRestClient {
 		return files;
 	}
 
+	/**
+	 * Post a comment on the diff of a file in the pull request.
+	 *
+	 * @param owner
+	 * @param repo
+	 * @param pullNumber
+	 * @param body			The comment.
+	 * @param commitId		ID of the latest commit.
+	 * @param path			The path to the file.
+	 * @param position		The position in the diff.
+	 * @throws IOException
+	 */
 	public void postReviewComment(
 			String owner,
 			String repo,
@@ -174,15 +156,16 @@ public class GHRestClient {
 			String body,
 			String commitId,
 			String path,
-			int position) {
+			int position)
+	throws IOException {
 		String url = serverUrl + "/repos/" + owner + "/" + repo + "/pulls/"
 				+ Integer.toString(pullNumber) + "/comments";
-		System.out.println("REPO URL IS " + url);
 		HttpPost reviewRequest = new HttpPost(url);
 		reviewRequest.setHeader("Content-Type", "application/json");
 		reviewRequest.setHeader("Accept", "application/json");
 
 		String jsonString = null;
+		CloseableHttpResponse response = null;
 
 		try {
 			JSONObject jsonObj = new JSONObject();
@@ -191,16 +174,23 @@ public class GHRestClient {
 			jsonObj.put("path", path);
 			jsonObj.put("position", position);
 			jsonString = jsonObj.toString();
+
+			response = doPostRequest(reviewRequest, jsonString);
 		}
 		catch (JSONException ex) {
 			System.out.println("[Error] Failed to create JSON body with parameters: body: " + body + "commit_id: "
 					+ commitId + "path: " + path + "position: " + position);
 			throw new RuntimeException("Failed to create JSON body.");
 		}
-		System.out.println("JSON STRING IS " + jsonString);
-		CloseableHttpResponse response = doPostRequest(reviewRequest, jsonString);
+		finally {
+			response.close();
+		}
+
 	}
 
+	/**
+	 * Release any resources and close the stream
+	 */
 	public void cleanUp() {
 		try {
 			client.close();
@@ -210,6 +200,13 @@ public class GHRestClient {
 		}
 	}
 
+
+	/**
+	 * Parse the date format returned from Github objects.
+	 *
+	 * @param dateString
+	 * @return
+	 */
 	private Date parseGithubDate(String dateString) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		Date date = null;
@@ -274,7 +271,12 @@ public class GHRestClient {
 		StatusLine statusLine = response.getStatusLine();
 		int statusCode = statusLine.getStatusCode();
 
-		//unfinished... handle errors
+		if (statusCode != 200) {
+			System.out.println("[Error] GET request failed with status "
+					+ statusCode + " " + statusLine.getReasonPhrase());
+			throw new RuntimeException("HTTP GET request failed with status " + statusCode);
+		}
+
 		return response;
 	}
 

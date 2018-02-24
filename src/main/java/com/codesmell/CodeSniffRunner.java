@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import com.codesmell.gh.objects.PullRequest;
@@ -15,10 +13,6 @@ import com.codesmell.gh.objects.GHFile;
 
 public class CodeSniffRunner {
 
-	/**
-	 * pass in arguments of groovyFile and source file for now
-	 * e.g. 'java CodeSniffRunner groovyFile sourceFile'
-	 */
 	public static void main(String[] args) {
 		if (args.length < 3) {
 			System.out.println("[Error] Missing groovy file, owner, or repo arguments.\n"
@@ -52,7 +46,7 @@ public class CodeSniffRunner {
 				FileParser parser = new FileParser(groovyFile, sourceFile);
 				String procOutput = parser.runGroovyCommand();
 
-				//Find positions (line numbers) referenced in procOutput
+				/* Find positions (line numbers) referenced in procOutput */
 				List<String> lines = new ArrayList<>(Arrays.asList(procOutput.split(",|\n")));
 				lines.removeAll(Arrays.asList("", null));
 				if (lines.size() > 0) {
@@ -60,14 +54,21 @@ public class CodeSniffRunner {
 					+ "' at line numbers: " + lines.toString());
 				}
 
-				//For each position in procOutput, find position in diff
+				/* For each position in procOutput, find position in diff */
 				for (String lineNum : lines) {
 					try {
 						int line = Integer.parseInt(lineNum.trim());
 						int diffPos = ghFile.getDiffPosition(line);
 
-						restClient.postReviewComment(owner, repoName, latestPullRequest.getNumber(),
-								comment, latestCommit.getSha(), ghFile.getPath(), diffPos);
+						if (diffPos > 0) {
+							System.out.println("[Action] Posting comment on file '" + ghFile.getPath() + "' at "
+									+ "line " + diffPos + " in the file diff.");
+							restClient.postReviewComment(owner, repoName, latestPullRequest.getNumber(),
+									comment, latestCommit.getSha(), ghFile.getPath(), diffPos);
+						}
+						else {
+							/* Position not found in diff, post general comment instead */
+						}
 					}
 					catch (NumberFormatException ex) {
 						System.out.println("[Error] " + lineNum + " is not a properly formatted line number.");
@@ -76,8 +77,6 @@ public class CodeSniffRunner {
 						throw ex;
 					}
 				}
-
-				//If position not in diff, post general comment, otherwise post in diff position
 			}
 
 		}
