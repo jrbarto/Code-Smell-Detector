@@ -4,16 +4,20 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GHFile {
-	String path;
-	String contents;
-	String patchHeader;
+	private String path;
+	private String contents;
+	private ArrayList<String> diffLines;
 
-	public GHFile(String path, String contents, String patchHeader) {
+	public GHFile(String path, String contents, String diff) {
 		this.path = path;
 		this.contents = contents;
-		this.patchHeader = patchHeader;
+		/* split diff into a list of lines */
+		this.diffLines = new ArrayList<>(Arrays.asList(diff.split("\n")));
+		this.diffLines.removeIf(s -> s.startsWith("-")); // remove all deleted lines from diff
 	}
 
 	public File getTempFile() throws IOException {
@@ -26,11 +30,39 @@ public class GHFile {
 		File tempFile = File.createTempFile(path, ".tmp", dir);
 		tempFile.deleteOnExit();
 		FileWriter fileWriter = new FileWriter(tempFile, true);
-		System.out.println(tempFile.getName());
 		BufferedWriter bw = new BufferedWriter(fileWriter);
 		bw.write(contents);
 		bw.close();
 
 		return tempFile;
+	}
+
+	public int getDiffPosition(int fileLine) {
+		int index = 0;
+
+		while (index < diffLines.size() - 1) {
+			String head = diffLines.get(index); // contains relative line positions
+			String[] positions = (head.substring(head.indexOf("+") + 1, head.lastIndexOf("@@"))).split(",");
+			int startLine = Integer.parseInt(positions[0].trim()); // beginning line of this change
+			int changeLength = startLine; // line numbers in this change
+
+			/* Single line changes do not include a length */
+			if (positions.length > 1) {
+				changeLength = Integer.parseInt(positions[1].trim());
+			}
+
+			/* Return position in div if it is within this range */
+			if (fileLine >= startLine && fileLine <= (startLine + changeLength)) {
+				return fileLine - startLine + 1;
+			}
+
+			index += changeLength;
+		}
+
+		return -1;
+	}
+
+	public String getPath() {
+		return path;
 	}
 }

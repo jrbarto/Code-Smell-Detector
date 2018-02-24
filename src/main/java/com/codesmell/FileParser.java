@@ -1,6 +1,7 @@
 package com.codesmell;
 
 import java.io.File;
+import java.util.List;
 
 public class FileParser {
 	File groovyDir;
@@ -26,7 +27,7 @@ public class FileParser {
 		}
 	}
 
-	public void runGroovyCommand() {
+	public String runGroovyCommand() {
 		ProcessHelper procHelper = new ProcessHelper(groovyDir);
 		String groovyCommand; // must be on system path
 
@@ -42,7 +43,8 @@ public class FileParser {
 		String[] args = {groovyCommand, "-cp", classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
 
 		// execute a new process with the given commmand line arguments
-		procHelper.runCommand(message, args);
+		String procOutput = procHelper.runCommandWithOutput(message, args);
+		return procOutput;
 	}
 
 }

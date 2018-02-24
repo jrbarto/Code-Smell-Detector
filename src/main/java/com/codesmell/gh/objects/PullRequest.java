@@ -6,6 +6,7 @@ import java.util.List;
 public class PullRequest {
 	private int number;
 	private List<Commit> commits;
+	private Commit latestCommit;
 
 	public PullRequest(int number) {
 		this.number = number;
@@ -26,5 +27,13 @@ public class PullRequest {
 
 	public int getNumber() {
 		return number;
+	}
+
+	public void setLatestCommit(Commit latestCommit) {
+		this.latestCommit = latestCommit;
+	}
+
+	public Commit getLatestCommit() {
+		return latestCommit;
 	}
 }
