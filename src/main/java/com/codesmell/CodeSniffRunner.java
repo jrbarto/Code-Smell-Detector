@@ -49,7 +49,8 @@ public class CodeSniffRunner {
 			}
 
 			ArrayList<GHFile> pullRequestFiles = restClient.getPullRequestFiles(owner, repoName, latestPullRequest);
-			JSONArray draftComments = new JSONArray(); // Array of draft review comments to post
+			JSONArray draftComments = new JSONArray(); // Each comment associated with a position in the diff
+			ArrayList<String> generalComments = new ArrayList<>(); // Comments for issues not found in diff
 
 			System.out.println("[Action] Checking all files of commit '" + latestCommit.getSha() + "'...");
 			for (GHFile ghFile : pullRequestFiles) {
@@ -84,7 +85,8 @@ public class CodeSniffRunner {
 						}
 						else {
 							/* Position not found in diff, post general comment instead */
-
+							String generalComment = "File Path: " + ghFile.getPath() + "Line Number: " + line;
+							generalComments.add(generalComment);
 						}
 					}
 					catch (NumberFormatException ex) {
@@ -100,6 +102,12 @@ public class CodeSniffRunner {
 				/* Post review with draft comments */
 				restClient.postReview(owner, repoName, latestPullRequest.getNumber(),
 						REVIEW_BODY, latestCommit.getSha(), draftComments);
+			}
+			if (generalComments.size() > 0) {
+				/* Post general comment reviews */
+				String reviewBody = comment + "\nIssue found at the following positions:\n" + generalComments.toString();
+				restClient.postReview(owner, repoName, latestPullRequest.getNumber(),
+						reviewBody, latestCommit.getSha(), null);
 			}
 
 		}

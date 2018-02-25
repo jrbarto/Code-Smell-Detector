@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class GHFile {
-	private String path;
-	private String contents;
-	private ArrayList<String> diffLines;
+	private String path; // The relative path from the root of the repository
+	private String contents; // The raw file contents
+	private ArrayList<String> diffLines; // The diff of this file split into a list of lines
 
 	public GHFile(String path, String contents, String diff) {
 		this.path = path;

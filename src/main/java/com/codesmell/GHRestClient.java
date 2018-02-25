@@ -98,6 +98,16 @@ public class GHRestClient {
 		return pullRequest;
 	}
 
+	/**
+	 * Get all files (raw files and diffs) associated with this pull request
+	 *
+	 * @param owner
+	 * @param repoName
+	 * @param pullRequest
+	 * @return
+	 * @throws JSONException
+	 * @throws IOException
+	 */
 	public ArrayList<GHFile> getPullRequestFiles(String owner, String repoName, PullRequest pullRequest)
 			throws JSONException, IOException
 	{
@@ -125,56 +135,15 @@ public class GHRestClient {
 	}
 
 	/**
-	 * Post a comment on the diff of a file in the pull request.
-	 *
+	 * Post a review to request a specific change or make a general comment on a pull request.
 	 * @param owner
 	 * @param repo
 	 * @param pullNumber
-	 * @param body			The comment.
-	 * @param commitId		ID of the latest commit.
-	 * @param path			The path to the file.
-	 * @param position		The position in the diff.
+	 * @param body
+	 * @param commitId
+	 * @param draftComments
 	 * @throws IOException
 	 */
-	public void postReviewComment(
-			String owner,
-			String repo,
-			int pullNumber,
-			String body,
-			String commitId,
-			String path,
-			int position)
-	throws IOException {
-		String url = serverUrl + "/repos/" + owner + "/" + repo + "/pulls/"
-				+ Integer.toString(pullNumber) + "/comments";
-		HttpPost reviewRequest = new HttpPost(url);
-		reviewRequest.setHeader("Content-Type", "application/json");
-		reviewRequest.setHeader("Accept", "application/json");
-
-		String jsonString = null;
-		CloseableHttpResponse response = null;
-
-		try {
-			JSONObject jsonObj = new JSONObject();
-			jsonObj.put("body", body);
-			jsonObj.put("commit_id", commitId);
-			jsonObj.put("path", path);
-			jsonObj.put("position", position);
-			jsonString = jsonObj.toString();
-
-			response = doPostRequest(reviewRequest, jsonString);
-		}
-		catch (JSONException ex) {
-			System.out.println("[Error] Failed to create JSON body with parameters: body: " + body + "commit_id: "
-					+ commitId + "path: " + path + "position: " + position);
-			throw new RuntimeException("Failed to create JSON body.");
-		}
-		finally {
-			response.close();
-		}
-
-	}
-
 	public void postReview(
 			String owner,
 			String repo,
@@ -197,7 +166,12 @@ public class GHRestClient {
 			jsonObj.put("event", "REQUEST_CHANGES");
 			jsonObj.put("body", body);
 			jsonObj.put("commit_id", commitId);
-			jsonObj.put("comments", draftComments);
+
+			/* Post comments at positions in the diff if violations found in diff */
+			if (draftComments != null && draftComments.length() > 0) {
+				jsonObj.put("comments", draftComments);
+			}
+
 			jsonString = jsonObj.toString();
 
 			response = doPostRequest(reviewRequest, jsonString);
@@ -225,6 +199,13 @@ public class GHRestClient {
 		}
 	}
 
+	/**
+	 * Extract a JSON array out of an HTTP response body.
+	 * @param response
+	 * @return
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	private JSONArray parseArrayResponse(CloseableHttpResponse response) throws IOException, JSONException {
 		String json = "";
 		JSONArray jsonArr;
