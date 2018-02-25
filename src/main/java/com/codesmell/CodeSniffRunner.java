@@ -6,15 +6,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.codesmell.gh.objects.PullRequest;
 import com.codesmell.gh.objects.Commit;
 import com.codesmell.gh.objects.GHFile;
 
 public class CodeSniffRunner {
+	private static final String REVIEW_BODY = "The automated 'Code Smell Detector' tool found issues "
+			+ "with this pull request.";
 
 	public static void main(String[] args) {
-		if (args.length < 3) {
+		if (args.length < 4) {
 			System.out.println("[Error] Missing groovy file, owner, or repo arguments.\n"
 					+ "[Solution] Please run in the format 'CodeSniffer.jar /path/to/groovyfile owner repo comment'");
 			System.exit(1);
@@ -23,7 +28,7 @@ public class CodeSniffRunner {
 		String groovyFile = args[0];
 		String owner = args[1];
 		String repoName = args[2];
-		String comment = args[3];
+		String comment = "[Code Smell Detector Automated Comment]\n" + args[3];
 
 		/*
 		 * temporarily hard coded REST client setup
@@ -33,12 +38,18 @@ public class CodeSniffRunner {
 
 		try {
 			PullRequest latestPullRequest = restClient.getLatestPullRequest(owner, repoName);
-			Commit latestCommit = latestPullRequest.getLatestCommit();
-			if (latestPullRequest == null) {
+			Commit latestCommit = null;
+
+			if (latestPullRequest != null) {
+				latestCommit = latestPullRequest.getLatestCommit();
+			}
+			else {
 				System.out.println("[OK] No current pull requests for the " + owner + "/" + repoName + "repository.");
+				System.exit(0); // Gracefully exit the process
 			}
 
 			ArrayList<GHFile> pullRequestFiles = restClient.getPullRequestFiles(owner, repoName, latestPullRequest);
+			JSONArray draftComments = new JSONArray(); // Array of draft review comments to post
 
 			System.out.println("[Action] Checking all files of commit '" + latestCommit.getSha() + "'...");
 			for (GHFile ghFile : pullRequestFiles) {
@@ -49,6 +60,7 @@ public class CodeSniffRunner {
 				/* Find positions (line numbers) referenced in procOutput */
 				List<String> lines = new ArrayList<>(Arrays.asList(procOutput.split(",|\n")));
 				lines.removeAll(Arrays.asList("", null));
+
 				if (lines.size() > 0) {
 					System.out.println("[Ok] Found issues with file '" + ghFile.getPath()
 					+ "' at line numbers: " + lines.toString());
@@ -61,13 +73,18 @@ public class CodeSniffRunner {
 						int diffPos = ghFile.getDiffPosition(line);
 
 						if (diffPos > 0) {
+							/* The line number lies within the bounds of the diff, include it in the review */
 							System.out.println("[Action] Posting comment on file '" + ghFile.getPath() + "' at "
 									+ "line " + diffPos + " in the file diff.");
-							restClient.postReviewComment(owner, repoName, latestPullRequest.getNumber(),
-									comment, latestCommit.getSha(), ghFile.getPath(), diffPos);
+							JSONObject draftComment = new JSONObject();
+							draftComment.put("path", ghFile.getPath());
+							draftComment.put("position", diffPos);
+							draftComment.put("body", comment);
+							draftComments.put(draftComment);
 						}
 						else {
 							/* Position not found in diff, post general comment instead */
+
 						}
 					}
 					catch (NumberFormatException ex) {
@@ -77,6 +94,12 @@ public class CodeSniffRunner {
 						throw ex;
 					}
 				}
+			}
+
+			if (draftComments.length() > 0) {
+				/* Post review with draft comments */
+				restClient.postReview(owner, repoName, latestPullRequest.getNumber(),
+						REVIEW_BODY, latestCommit.getSha(), draftComments);
 			}
 
 		}

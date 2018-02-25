@@ -8,10 +8,7 @@ import org.apache.http.client.ClientProtocolException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -85,19 +82,10 @@ public class GHRestClient {
 			request = new HttpGet(url);
 			response = doGetRequest(request);
 			JSONArray commits = parseArrayResponse(response);
-			Date latestCommitDate = new Date(0); // Earliest possible date, UNIX EPOCH
 
 			for (int i = 0; i < commits.length(); i++) {
 				JSONObject commitJson = commits.getJSONObject(i);
-				String dateString = commitJson.getJSONObject("commit").getJSONObject("committer").getString("date");
-				Date commitDate = parseGithubDate(dateString);
-				Commit newCommit = new Commit(commitJson.getString("sha"), commitDate);
-
-				/* Compare commit dates to acquire latest */
-				if (commitDate.compareTo(latestCommitDate) > 0) {
-					latestCommitDate = commitDate;
-					pullRequest.setLatestCommit(newCommit);
-				}
+				Commit newCommit = new Commit(commitJson.getString("sha"));
 
 				pullRequest.addCommit(newCommit);
 			}
@@ -114,7 +102,6 @@ public class GHRestClient {
 			throws JSONException, IOException
 	{
 		ArrayList<GHFile> files = new ArrayList<>();
-		Commit latestCommit = pullRequest.getLatestCommit();
 		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/pulls/" + pullRequest.getNumber() + "/files";
 		HttpGet request = new HttpGet(url);
 		CloseableHttpResponse response = doGetRequest(request);
@@ -188,6 +175,44 @@ public class GHRestClient {
 
 	}
 
+	public void postReview(
+			String owner,
+			String repo,
+			int pullNumber,
+			String body,
+			String commitId,
+			JSONArray draftComments)
+	throws IOException {
+		String url = serverUrl + "/repos/" + owner + "/" + repo + "/pulls/"
+				+ Integer.toString(pullNumber) + "/reviews";
+		HttpPost reviewRequest = new HttpPost(url);
+		reviewRequest.setHeader("Content-Type", "application/json");
+		reviewRequest.setHeader("Accept", "application/json");
+
+		String jsonString = null;
+		CloseableHttpResponse response = null;
+
+		try {
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("event", "REQUEST_CHANGES");
+			jsonObj.put("body", body);
+			jsonObj.put("commit_id", commitId);
+			jsonObj.put("comments", draftComments);
+			jsonString = jsonObj.toString();
+
+			response = doPostRequest(reviewRequest, jsonString);
+		}
+		catch (JSONException ex) {
+			System.out.println("[Error] Failed to create JSON body with parameters: body: " + body + "commit_id: "
+					+ commitId + "comments:" + draftComments.toString());
+			throw new RuntimeException("Failed to create JSON body.");
+		}
+		finally {
+			response.close();
+		}
+
+	}
+
 	/**
 	 * Release any resources and close the stream
 	 */
@@ -198,26 +223,6 @@ public class GHRestClient {
 		catch (IOException ex) {
 			System.out.println("[Warning] Failed to close httpclient stream.");
 		}
-	}
-
-
-	/**
-	 * Parse the date format returned from Github objects.
-	 *
-	 * @param dateString
-	 * @return
-	 */
-	private Date parseGithubDate(String dateString) {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-		Date date = null;
-		try {
-			date = formatter.parse(dateString);
-		} catch (ParseException ex) {
-			System.out.println("[Error] Failed to parse date string '" + dateString + "'.");
-			throw new RuntimeException(ex);
-		}
-
-		return date;
 	}
 
 	private JSONArray parseArrayResponse(CloseableHttpResponse response) throws IOException, JSONException {
@@ -298,7 +303,7 @@ public class GHRestClient {
 		StatusLine statusLine = response.getStatusLine();
 		int statusCode = statusLine.getStatusCode();
 
-		if (statusCode != 201) {
+		if (statusCode != 200 && statusCode != 201) {
 			System.out.println("[Error] POST request failed with status "
 					+ statusCode + " " + statusLine.getReasonPhrase());
 			throw new RuntimeException("HTTP POST request failed with status " + statusCode);
