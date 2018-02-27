@@ -12,12 +12,19 @@ public class GHFile {
 	private String contents; // The raw file contents
 	private ArrayList<String> diffLines; // The diff of this file split into a list of lines
 
+	/* Constructor for pull request files (a diff exists) */
 	public GHFile(String path, String contents, String diff) {
 		this.path = path;
 		this.contents = contents;
 		/* split diff into a list of lines */
 		this.diffLines = new ArrayList<>(Arrays.asList(diff.split("\n")));
 		this.diffLines.removeIf(s -> s.startsWith("-")); // remove all deleted lines from diff
+	}
+
+	/* Constructor for repo files (no diff) */
+	public GHFile(String path, String contents) {
+		this.path = path;
+		this.contents = contents;
 	}
 
 	public File getTempFile() throws IOException {

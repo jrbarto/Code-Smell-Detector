@@ -52,7 +52,7 @@
         <jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${build.dir}">
             <manifest>
             <!-- create an executable Jar -->
-            <attribute name="Main-Class" value="com.codesmell.CodeSniffRunner" />
+            <attribute name="Main-Class" value="com.codesmell.Main" />
             <attribute name="Class-Path" value="${lib.list}"/>
             </manifest>
         	<!-- Include CodeParser API in the main jar to be used at runtime -->

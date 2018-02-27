@@ -1,5 +1,6 @@
 package com.codesmell;
 
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -53,6 +54,14 @@ public class GHRestClient {
 				throw new RuntimeException("Missing HTTP protocol in URL: " + serverUrl);
 			}
 		}
+	}
+
+	public void executePullRequestReview() {
+
+	}
+
+	public void executeFullReview() {
+
 	}
 
 	/**
@@ -120,22 +129,107 @@ public class GHRestClient {
 
 		for (int i = 0; i < filesJson.length(); i++) {
 			JSONObject fileJson = filesJson.getJSONObject(i);
-			url = fileJson.getString("contents_url");
-			request = new HttpGet(url);
-			request.addHeader("Accept", "application/vnd.github.VERSION.raw");
-			response = doGetRequest(request);
 			String path = fileJson.getString("filename");
-			String diff = fileJson.getString("patch");
-			String contents = EntityUtils.toString(response.getEntity());
-			GHFile ghFile = new GHFile(path, contents, diff);
-			files.add(ghFile);
+
+			/* Only review Java files */
+			if (path.endsWith(".java")) {
+				String contentsUrl = fileJson.getString("contents_url");
+				files.add(buildGHFile(fileJson, path, contentsUrl));
+			}
 		}
 
 		return files;
 	}
 
 	/**
+	 * Get all files (only the raw file) of a repository.
+	 *
+	 * @param owner
+	 * @param repoName
+	 * @return
+	 * @throws JSONException
+	 * @throws IOException
+	 */
+	public ArrayList<GHFile> getRepoFiles(String owner, String repoName)
+			throws JSONException, IOException
+	{
+		ArrayList<GHFile> files = new ArrayList<>();
+		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/contents";
+		HttpGet request = new HttpGet(url);
+		CloseableHttpResponse response = doGetRequest(request);
+
+		JSONArray filesJson = parseArrayResponse(response);
+
+		/* Recurse into all directories, starting with the root */
+		files = recurseDirectory(filesJson, url, files);
+
+		return files;
+	}
+
+	/**
+	 * Delve into each directory to extract each Java file.
+	 *
+	 * @param directory
+	 * @param url
+	 * @param files
+	 * @return
+	 * @throws JSONException
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	private ArrayList<GHFile> recurseDirectory(JSONArray directory, String url, ArrayList<GHFile> files)
+			throws JSONException, ParseException, IOException
+	{
+		for (int i = 0; i < directory.length(); i++) {
+			JSONObject fileJson = directory.getJSONObject(i);
+			String type = fileJson.getString("type");
+
+			if (type.equals("file")) {
+				String path = fileJson.getString("path");
+
+				if (path.endsWith(".java")) {
+					String contentsUrl = fileJson.getString("download_url");
+					files.add(buildGHFile(fileJson, path, contentsUrl));
+				}
+			}
+			else if (type.equals("dir")) {
+				String dirPath = fileJson.getString("path");
+				String pathUrl = url + "/" + dirPath;
+				HttpGet request = new HttpGet(pathUrl);
+				CloseableHttpResponse response = doGetRequest(request);
+
+				JSONArray filesJson = parseArrayResponse(response);
+				recurseDirectory(filesJson, url, files);
+			}
+		}
+
+		return files;
+	}
+
+	private GHFile buildGHFile(JSONObject fileJson, String path, String contentsUrl)
+			throws ParseException, IOException, JSONException
+	{
+		HttpGet request = new HttpGet(contentsUrl);
+		request.addHeader("Accept", "application/vnd.github.VERSION.raw");
+		CloseableHttpResponse response = doGetRequest(request);
+		String contents = EntityUtils.toString(response.getEntity());
+		GHFile ghFile = null;
+
+		/* Pull request files have patches (diffs), repository files do not */
+		if (fileJson.has("patch")) {
+			String diff = fileJson.getString("patch");
+			ghFile = new GHFile(path, contents, diff);
+		}
+		else {
+			ghFile = new GHFile(path, contents);
+		}
+
+		return ghFile;
+	}
+
+	/**
 	 * Post a review to request a specific change or make a general comment on a pull request.
+	 *
 	 * @param owner
 	 * @param repo
 	 * @param pullNumber
@@ -187,10 +281,37 @@ public class GHRestClient {
 
 	}
 
+	public void createIssue(String owner, String repoName, String title, String body) throws IOException {
+		String url = serverUrl + "/repos/" + owner + "/" + repoName + "/issues";
+		HttpPost issueRequest = new HttpPost(url);
+		issueRequest.setHeader("Content-Type", "application/json");
+		issueRequest.setHeader("Accept", "application/json");
+
+		String jsonString = null;
+		CloseableHttpResponse response = null;
+
+		try {
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("title", title);
+			jsonObj.put("body", body);
+
+			jsonString = jsonObj.toString();
+
+			response = doPostRequest(issueRequest, jsonString);
+		}
+		catch (JSONException ex) {
+			System.out.println("[Error] Failed to create JSON body with parameters: title: " + title + "body: " + body);
+			throw new RuntimeException("Failed to create JSON body.");
+		}
+		finally {
+			response.close();
+		}
+	}
+
 	/**
-	 * Release any resources and close the stream
+	 * Release any resources and close the process stream
 	 */
-	public void cleanUp() {
+	public void closeClient() {
 		try {
 			client.close();
 		}
