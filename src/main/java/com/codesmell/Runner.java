@@ -140,14 +140,14 @@ public class Runner {
 				System.out.println("[Ok] Found issues with file '" + ghFile.getPath()
 				+ "' at line numbers: " + lines.toString());
 
-				lineViolations += ghFile.getPath()
-						+ " Line Number: " + lines.toString();
+				lineViolations += "File Path: " + ghFile.getPath()
+						+ " Line Number: " + lines.toString() + "\n";
 			}
 		}
 
 		if (lineViolations.length() != 0) {
-			String body = comment + "\nThe following lines are in violation:\n File Path: " + lineViolations;
 			String title = "[Code Smell Detector Automated Comment]\n Found issues with this repository.";
+			String body = comment + "\nThe following lines are in violation:\n " + lineViolations;
 			restClient.createIssue(owner, repoName, title, body);
 		}
 	}

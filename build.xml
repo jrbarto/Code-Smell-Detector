@@ -24,11 +24,6 @@
 	<path id="build.classpath">
         <fileset dir="${lib.dir}" includes="**/*.jar"/>
 	</path>
-	
-	<!-- Runtime classpath setup -->
-	<manifestclasspath property="lib.list" jarfile="dist/myprog.jar">
-	    <classpath refid="build.classpath"/>
-	</manifestclasspath>
 
     <target name="init">
         <!-- Create the time stamp -->
@@ -55,8 +50,8 @@
             <attribute name="Main-Class" value="com.codesmell.Main" />
             <attribute name="Class-Path" value="${lib.list}"/>
             </manifest>
-        	<!-- Include CodeParser API in the main jar to be used at runtime -->
-        	<zipgroupfileset dir="${lib.dir}" includes="CodeParser*.jar" />
+        	<!-- Include all libraries in the main jar to be used at runtime -->
+        	<zipgroupfileset dir="${lib.dir}" includes="*.jar" />
         </jar>
     </target>
 
