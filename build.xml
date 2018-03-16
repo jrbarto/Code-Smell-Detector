@@ -1,71 +1,71 @@
 <project name="CodeSniffer" default="main" basedir=".">
-    <description>
-        Create the CodeSniffer JAR with an Ant build script.
-    </description>
+  <description>
+    Create the CodeSniffer JAR with an Ant build script.
+  </description>
 
-    <property name="projectName" value="CodeSniffer" />
+  <property name="projectName" value="CodeSniffer" />
 
-    <!-- Sources -->
-    <property name="src.dir" location="src" />
+  <!-- Sources -->
+  <property name="src.dir" location="src" />
     
-    <!-- Java sources -->
-    <property name="src.main.java.dir" location="${src.dir}/main/java" />
+  <!-- Java sources -->
+  <property name="src.main.java.dir" location="${src.dir}/main/java" />
 
-    <!-- Java classes -->
-    <property name="build.dir" location="bin" />
+  <!-- Java classes -->
+  <property name="build.dir" location="bin" />
 
-    <!-- Output, Jar -->
-    <property name="dist.dir" location="dist" />
+  <!-- Output, Jar -->
+  <property name="dist.dir" location="dist" />
 	
 	<!-- Dependencies -->
 	<property name="lib.dir" location="lib" />
 	
 	<!-- Classpath used for building the jar -->
 	<path id="build.classpath">
-        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
 	</path>
 
-    <target name="init">
-        <!-- Create the time stamp -->
-        <tstamp />
-        <!-- Create the build directory structure used by compile -->
-        <mkdir dir="${build.dir}" />
-    </target>
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp />
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build.dir}" />
+  </target>
 	
-    <target name="compile" depends="init" description="compile the source ">
-        <!-- Compile the java code from ${src.dir} into ${build.dir} -->
-    	<echo>${toString:classpath}</echo>
-        <javac includeantruntime="false" debug="true" srcdir="${src.main.java.dir}" destdir="${build.dir}" classpathref="build.classpath" />
-    </target>
+  <target name="compile" depends="init" description="compile the source ">
+    <!-- Compile the java code from ${src.dir} into ${build.dir} -->
+    <echo>${toString:classpath}</echo>
+    <javac includeantruntime="false" debug="true" srcdir="${src.main.java.dir}" destdir="${build.dir}" classpathref="build.classpath" />
+  </target>
 
-    <target name="dist" depends="compile" description="package, output to JAR">
+  <target name="dist" depends="compile" description="package, output to JAR">
 
-        <!-- Create the distribution directory -->
-        <mkdir dir="${dist.dir}" />
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist.dir}" />
 
-        <!-- Put everything in ${build} into the {$projectName}-${DSTAMP}.jar file -->
-        <jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${build.dir}">
-            <manifest>
-            <!-- create an executable Jar -->
-            <attribute name="Main-Class" value="com.codesmell.Main" />
-            <attribute name="Class-Path" value="${lib.list}"/>
-            </manifest>
-        	<!-- Include all libraries in the main jar to be used at runtime -->
-        	<zipgroupfileset dir="${lib.dir}" includes="*.jar" />
-        </jar>
-    </target>
+    <!-- Put everything in ${build} into the {$projectName}-${DSTAMP}.jar file -->
+    <jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${build.dir}">
+      <manifest>
+        <!-- create an executable Jar -->
+        <attribute name="Main-Class" value="com.codesmell.Main" />
+        <attribute name="Class-Path" value="${lib.list}"/>
+      </manifest>
+      <!-- Include all libraries in the main jar to be used at runtime -->
+      <zipgroupfileset dir="${lib.dir}" includes="*.jar" />
+    </jar>
+  </target>
 
-    <target name="clean" description="clean up">
-        <delete dir="${build.dir}" />
-        <delete dir="${dist.dir}" />
-    </target>
+  <target name="clean" description="clean up">
+    <delete dir="${build.dir}" />
+    <delete dir="${dist.dir}" />
+  </target>
 	
 	<target name="print-classpath">
-        <pathconvert property="classpathInName" refid="classpath" />
-        <echo>Classpath is ${classpathInName}</echo>
+    <pathconvert property="classpathInName" refid="classpath" />
+    <echo>Classpath is ${classpathInName}</echo>
 	</target>
 
-    <!-- Default, run this -->
-    <target name="main" depends="clean, compile, dist" />
+  <!-- Default, run this -->
+  <target name="main" depends="clean, compile, dist" />
 
 </project>

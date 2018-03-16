@@ -3,48 +3,56 @@ package com.codesmell;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Helper class to build the proper CLI command for executing Groovy scripts.
+ *
+ */
 public class FileParser {
-	File groovyDir;
-	File groovyFile;
-	File sourceFile;
-	boolean isWindows;
+    File groovyDir;
+    File groovyFile;
+    File sourceFile;
+    boolean isWindows;
 
-	public FileParser(String groovyArg, File sourceArg) {
-		String os = System.getProperty("os.name");
-		isWindows = os.toLowerCase().contains("windows");
+    public FileParser(String groovyArg, File sourceArg) {
+        String os = System.getProperty("os.name");
+        isWindows = os.toLowerCase().contains("windows");
 
-		groovyFile = new File(groovyArg);
-		//sourceFile = new File(sourceArg);
-		sourceFile = sourceArg;
+        groovyFile = new File(groovyArg);
+        sourceFile = sourceArg;
 
-		if (!groovyFile.exists() || !groovyFile.isFile()) {
-			System.out.println("[Error] Groovy file " + groovyFile.getAbsolutePath() + " doesn't exist.");
-			throw new RuntimeException("Missing groovy file " + groovyFile.getAbsolutePath());
-		}
-		if (!sourceFile.exists() || !sourceFile.isFile()) {
-			System.out.println("[Error] Source file " + groovyFile.getAbsolutePath() + " doesn't exist.");
-			throw new RuntimeException("Missing source file " + groovyFile.getAbsolutePath());
-		}
-	}
+        if (!groovyFile.exists() || !groovyFile.isFile()) {
+            System.out.println("[Error] Groovy file " + groovyFile.getAbsolutePath() + " doesn't exist.");
+            throw new RuntimeException("Missing groovy file " + groovyFile.getAbsolutePath());
+        }
+        if (!sourceFile.exists() || !sourceFile.isFile()) {
+            System.out.println("[Error] Source file " + groovyFile.getAbsolutePath() + " doesn't exist.");
+            throw new RuntimeException("Missing source file " + groovyFile.getAbsolutePath());
+        }
+    }
 
-	public String runGroovyCommand() {
-		ProcessHelper procHelper = new ProcessHelper(groovyDir);
-		String groovyCommand; // must be on system path
+    /**
+     * Run the groovy process on the command line.
+     *
+     * @return The output from the groovy process.
+     */
+    public String runGroovyCommand() {
+        ProcessHelper procHelper = new ProcessHelper(groovyDir);
+        String groovyCommand; // must be on system path
 
-		if (isWindows) {
-			groovyCommand = "groovy.bat";
-		}
-		else {
-			groovyCommand = "groovy";
-		}
+        if (isWindows) {
+            groovyCommand = "groovy.bat";
+        }
+        else {
+            groovyCommand = "groovy";
+        }
 
-		String message = "Running groovy file " + groovyFile.getName() + " on source file " + sourceFile.getName();
-		String classpath = System.getProperty("java.class.path");
-		String[] args = {groovyCommand, "-cp", classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
+        String message = "Running groovy file " + groovyFile.getName() + " on source file " + sourceFile.getName();
+        String classpath = System.getProperty("java.class.path");
+        String[] args = {groovyCommand, "-cp", classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
 
-		// execute a new process with the given commmand line arguments
-		String procOutput = procHelper.runCommandWithOutput(message, args);
-		return procOutput;
-	}
+        // execute a new process with the given commmand line arguments
+        String procOutput = procHelper.runCommandWithOutput(message, args);
+        return procOutput;
+    }
 
 }
