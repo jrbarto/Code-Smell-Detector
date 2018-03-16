@@ -19,6 +19,8 @@
 	
 	<!-- Dependencies -->
 	<property name="lib.dir" location="lib" />
+
+  <property name="version" value="1.0" />
 	
 	<!-- Classpath used for building the jar -->
 	<path id="build.classpath">
@@ -26,10 +28,9 @@
 	</path>
 
   <target name="init">
-    <!-- Create the time stamp -->
-    <tstamp />
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build.dir}" />
+    <mkdir dir="${dist.dir}"/>
   </target>
 	
   <target name="compile" depends="init" description="compile the source ">
@@ -44,7 +45,7 @@
     <mkdir dir="${dist.dir}" />
 
     <!-- Put everything in ${build} into the {$projectName}-${DSTAMP}.jar file -->
-    <jar jarfile="${dist.dir}/${projectName}-${DSTAMP}.jar" basedir="${build.dir}">
+    <jar jarfile="${dist.dir}/${projectName}-${version}.jar" basedir="${build.dir}">
       <manifest>
         <!-- create an executable Jar -->
         <attribute name="Main-Class" value="com.codesmell.Main" />
