@@ -16,6 +16,8 @@ public class Main {
                     + "'CodeSniffer.jar /path/to/groovyfile repoPath username:password comment true/false'");
             System.exit(1);
         }
+        String groovyHome = System.getenv("JAVA_HOME");
+        System.out.println("GROOVY HOME IS " + groovyHome);
 
         String groovyFile = args[0];
         String repoPath = args[1];    // Full path to the repo 'Org/RepoName'

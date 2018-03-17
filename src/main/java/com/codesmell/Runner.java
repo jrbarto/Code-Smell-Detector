@@ -59,6 +59,7 @@ public class Runner {
         ArrayList<String> generalComments = new ArrayList<>(); // Comments for issues not found in diff
 
         System.out.println("[Action] Checking all files of commit '" + latestCommit.getSha() + "'...");
+        System.out.println();
         for (GHFile ghFile : pullRequestFiles) {
             File sourceFile = ghFile.getTempFile();
             FileParser parser = new FileParser(groovyFile, sourceFile);
@@ -70,7 +71,8 @@ public class Runner {
 
             if (lines.size() > 0) {
                 System.out.println("[Ok] Found issues with file '" + ghFile.getPath()
-                + "' at line numbers: " + lines.toString());
+                  + "' at line numbers: " + lines.toString());
+                System.out.println();
             }
 
             /* For each position in procOutput, find position in diff */
@@ -82,7 +84,8 @@ public class Runner {
                     if (diffPos > 0) {
                         /* The line number lies within the bounds of the diff, include it in the review */
                         System.out.println("[Action] Posting comment on file '" + ghFile.getPath() + "' at "
-                                + "line " + diffPos + " in the file diff.");
+                          + "line " + diffPos + " in the file diff.");
+                        System.out.println();
                         JSONObject draftComment = new JSONObject();
                         draftComment.put("path", ghFile.getPath());
                         draftComment.put("position", diffPos);
@@ -129,6 +132,7 @@ public class Runner {
 
         String lineViolations = "";
         System.out.println("[Action] Checking all files in repository '" + repoPath + "'...");
+        System.out.println();
         for (GHFile ghFile : repoFiles) {
             File sourceFile = ghFile.getTempFile();
             FileParser parser = new FileParser(groovyFile, sourceFile);
@@ -140,7 +144,8 @@ public class Runner {
 
             if (lines.size() > 0) {
                 System.out.println("[Ok] Found issues with file '" + ghFile.getPath()
-                + "' at line numbers: " + lines.toString());
+                  + "' at line numbers: " + lines.toString());
+                System.out.println();
 
                 lineViolations += "File Path: " + ghFile.getPath()
                         + " Line Number: " + lines.toString() + "\n";

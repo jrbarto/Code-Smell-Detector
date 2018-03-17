@@ -43,16 +43,16 @@ public class FileParser {
             groovyCommand = "groovy.bat";
         }
         else {
-            groovyCommand = "groovy";
+            //groovyCommand = "groovy";
+            groovyCommand = "/usr/lib/groovy-2.4.13/bin/groovy";
         }
 
         String message = "Running groovy file " + groovyFile.getName() + " on source file " + sourceFile.getName();
         String classpath = System.getProperty("java.class.path");
-        String[] args = {groovyCommand, "-cp", classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
+        String[] args = {groovyCommand, "-cp" , classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
 
         // execute a new process with the given commmand line arguments
         String procOutput = procHelper.runCommandWithOutput(message, args);
         return procOutput;
     }
-
 }

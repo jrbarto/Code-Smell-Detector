@@ -17,7 +17,7 @@ public class ProcessHelper {
     OutputStream out = System.out; // used to flush stdout
 
     public ProcessHelper(File workDir) {
-        pb = new ProcessBuilder().directory(workDir);
+        pb = new ProcessBuilder();
     }
 
     /**
@@ -53,7 +53,7 @@ public class ProcessHelper {
         }
         catch (IOException ex) {
             System.out.println("[Error] Failed to execute command " + Arrays.toString(command));
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
         }
         catch (InterruptedException ex) {
             System.out.println("[Error] Thread was interrupted while waiting for process to finish.");
