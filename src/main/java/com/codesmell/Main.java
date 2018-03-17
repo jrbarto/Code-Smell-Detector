@@ -46,11 +46,11 @@ public class Main {
             System.out.format("The automated code review tool finished in %02d:%02d:%02d seconds.\n", hours, minutes, seconds);
         }
         catch (IOException ex) {
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
             System.exit(1);
         }
         catch (JSONException ex) {
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
             System.exit(1);
         }
         finally {

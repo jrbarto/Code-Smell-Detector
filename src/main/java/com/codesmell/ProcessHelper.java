@@ -57,7 +57,7 @@ public class ProcessHelper {
         }
         catch (InterruptedException ex) {
             System.out.println("[Error] Thread was interrupted while waiting for process to finish.");
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
         }
         finally {
             try {
@@ -66,7 +66,7 @@ public class ProcessHelper {
             }
             catch (IOException ex) {
                 System.out.println("[Error] Failed to flush standard output stream");
-                ex.printStackTrace();
+                ex.printStackTrace(System.out);
             }
         }
 

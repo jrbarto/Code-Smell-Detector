@@ -461,10 +461,10 @@ public class GHRestClient {
             response = client.execute(request);
         } catch (ClientProtocolException ex) {
             System.out.println("[Error] Invalid protocol or endpoint not found.");
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
         } catch (IOException ex) {
             System.out.println("[Error] Http connection closed.");
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
         }
 
         return response;
