@@ -16,9 +16,6 @@ public class Main {
                     + "'CodeSniffer.jar /path/to/groovyfile repoPath username:password comment true/false'");
             System.exit(1);
         }
-        String groovyHome = System.getenv("JAVA_HOME");
-        System.out.println("GROOVY HOME IS " + groovyHome);
-
         String groovyFile = args[0];
         String repoPath = args[1];    // Full path to the repo 'Org/RepoName'
         String authHeader = args[2]; // Authorization header... Will be Base64 encoded if not already
@@ -43,7 +40,9 @@ public class Main {
             int seconds =  (int) (totalTime / 1000) % 60;
             int minutes = (int) (totalTime / (1000 * 60)) % 60;
             int hours = (int) (totalTime / (1000 * 60 * 60)) % 60;
-            System.out.format("The automated code review tool finished in %02d:%02d:%02d seconds.\n", hours, minutes, seconds);
+            System.out.format("[Done] The automated code review tool finished in %02d:%02d:%02d seconds.\n",
+                    hours, minutes, seconds);
+            System.out.println();
         }
         catch (IOException ex) {
             ex.printStackTrace(System.out);

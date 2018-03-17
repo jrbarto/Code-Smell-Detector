@@ -16,7 +16,7 @@ public class ProcessHelper {
     ProcessBuilder pb;
     OutputStream out = System.out; // used to flush stdout
 
-    public ProcessHelper(File workDir) {
+    public ProcessHelper() {
         pb = new ProcessBuilder();
     }
 
@@ -34,6 +34,7 @@ public class ProcessHelper {
 
         if (!message.isEmpty()) {
             System.out.println(message);
+            System.out.println();
         }
 
         try {

@@ -22,13 +22,13 @@ public class Runner {
     private final String REVIEW_BODY = "The automated 'Code Hound' tool found issues "
             + "with this pull request.";
     private final String API_URL = "https://api.github.com";
-    private String groovyFile;
+    private File groovyFile;
     private String repoPath;
     private String comment;
     private GHRestClient restClient;
 
-    public Runner(String groovyFile, String repoPath, String authHeader, String comment) {
-        this.groovyFile = groovyFile;
+    public Runner(String groovyPath, String repoPath, String authHeader, String comment) {
+        this.groovyFile = new File(groovyPath);
         this.repoPath = repoPath;
         this.comment = "[Code Hound Automated Comment]\n" + comment;
         this.restClient = new GHRestClient(API_URL, authHeader);
@@ -63,7 +63,7 @@ public class Runner {
         for (GHFile ghFile : pullRequestFiles) {
             File sourceFile = ghFile.getTempFile();
             FileParser parser = new FileParser(groovyFile, sourceFile);
-            String procOutput = parser.runGroovyCommand();
+            String procOutput = parser.runGroovyCommand(ghFile.getPath());
 
             /* Find positions (line numbers) referenced in procOutput */
             List<String> lines = new ArrayList<>(Arrays.asList(procOutput.split(",|\n")));
@@ -131,12 +131,13 @@ public class Runner {
         ArrayList<GHFile> repoFiles= restClient.getRepoFiles(repoPath);
 
         String lineViolations = "";
-        System.out.println("[Action] Checking all files in repository '" + repoPath + "'...");
+        System.out.println("[Action] Reviewing repository '" + repoPath + "' using groovy file '"
+                + groovyFile.getName() + "...");
         System.out.println();
         for (GHFile ghFile : repoFiles) {
             File sourceFile = ghFile.getTempFile();
             FileParser parser = new FileParser(groovyFile, sourceFile);
-            String procOutput = parser.runGroovyCommand();
+            String procOutput = parser.runGroovyCommand(ghFile.getPath());
 
             /* Find positions (line numbers) referenced in procOutput */
             List<String> lines = new ArrayList<>(Arrays.asList(procOutput.split(",|\n")));

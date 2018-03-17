@@ -8,17 +8,17 @@ import java.util.List;
  *
  */
 public class FileParser {
-    File groovyDir;
     File groovyFile;
     File sourceFile;
     boolean isWindows;
 
-    public FileParser(String groovyArg, File sourceArg) {
+    public FileParser(File groovyFile, File sourceFile) {
         String os = System.getProperty("os.name");
         isWindows = os.toLowerCase().contains("windows");
 
-        groovyFile = new File(groovyArg);
-        sourceFile = sourceArg;
+        this.groovyFile = groovyFile;
+        this.sourceFile = sourceFile;
+
 
         if (!groovyFile.exists() || !groovyFile.isFile()) {
             System.out.println("[Error] Groovy file " + groovyFile.getAbsolutePath() + " doesn't exist.");
@@ -31,23 +31,24 @@ public class FileParser {
     }
 
     /**
-     * Run the groovy process on the command line.
+     * Run the groovy process on a specific file from github on the command line.
      *
+     * @param filePath The path to the Github file.
      * @return The output from the groovy process.
      */
-    public String runGroovyCommand() {
-        ProcessHelper procHelper = new ProcessHelper(groovyDir);
+    public String runGroovyCommand(String filePath) {
+        ProcessHelper procHelper = new ProcessHelper();
         String groovyCommand; // must be on system path
 
         if (isWindows) {
             groovyCommand = "groovy.bat";
         }
         else {
-            //groovyCommand = "groovy";
-            groovyCommand = "/usr/lib/groovy-2.4.13/bin/groovy";
+            groovyCommand = "groovy";
+            //groovyCommand = "/usr/lib/groovy-2.4.13/bin/groovy";
         }
 
-        String message = "Running groovy file " + groovyFile.getName() + " on source file " + sourceFile.getName();
+        String message = "[Action] Checking file " + filePath + "...";
         String classpath = System.getProperty("java.class.path");
         String[] args = {groovyCommand, "-cp" , classpath, groovyFile.getAbsolutePath(), sourceFile.getAbsolutePath()};
 
