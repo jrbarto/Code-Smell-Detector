@@ -8,6 +8,7 @@ import java.util.List;
  *
  */
 public class FileParser {
+    private static String GROOVY_HOME = "/bin/groovy";
     File groovyFile;
     File sourceFile;
     boolean isWindows;
@@ -44,8 +45,14 @@ public class FileParser {
             groovyCommand = "groovy.bat";
         }
         else {
-            groovyCommand = "groovy";
-            //groovyCommand = "/usr/lib/groovy-2.4.13/bin/groovy";
+            String groovyHome = System.getenv("GROOVY_HOME");
+
+            if (groovyHome == null || groovyHome.isEmpty()) {
+              groovyCommand = GROOVY_HOME + "/bin/groovy";
+            }
+            else {
+              groovyCommand = groovyHome + "/bin/groovy";
+            }
         }
 
         String message = "[Action] Checking file " + filePath + "...";

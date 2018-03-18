@@ -75,6 +75,7 @@ public class GHRestClient {
         int requestNumber = 0;
         PullRequest pullRequest = null;
         String url = serverUrl + "/repos/" + repoPath + "/pulls";
+        System.out.println("URL IS " + url);
         HttpGet request = new HttpGet(url);
         CloseableHttpResponse response = doGetRequest(request);
         JSONArray pullRequests = parseArrayResponse(response);
