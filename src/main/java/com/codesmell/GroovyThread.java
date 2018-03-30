@@ -6,18 +6,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
 import java.util.Arrays;
 
 /**
  * Class to execute processes on the machine.
  *
  */
-public class ProcessHelper {
+public class GroovyThread implements Callable<String> {
     ProcessBuilder pb;
     OutputStream out = System.out; // used to flush stdout
+    String[] command;
+    String message;
 
-    public ProcessHelper() {
+    public GroovyThread(String[] command, String message) {
         pb = new ProcessBuilder();
+        this.command = command;
+        this.message = message;
     }
 
     /**
@@ -27,7 +32,7 @@ public class ProcessHelper {
      * @param command
      * @return Command line output.
      */
-    public String runCommandWithOutput(String message, String[] command) {
+    public String call() {
         Process process = null;
         pb.command(command);
         StringBuilder output = new StringBuilder();

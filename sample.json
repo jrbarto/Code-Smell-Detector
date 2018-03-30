@@ -1,0 +1,15 @@
+{
+"repoPath": "SeniorDesignOrg/CH-Full-Demo",
+"authHeader": "codehounduser:password123",
+"fullReview": true,
+"scripts": [
+  {
+  "path": "/home/jeffrey/Documents/workspace-github/Code-Smell-Detector/src/main/groovy/MethodTooManyArgs.groovy", 
+  "comment": "This method has too many arguments"
+  },
+  {
+  "path": "/home/jeffrey/Documents/workspace-github/Code-Smell-Detector/src/main/groovy/LongMethodSniffer.groovy",
+  "comment": "This method is too long."
+  }
+]
+}
