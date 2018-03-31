@@ -1,0 +1,8 @@
+{
+"repoPath": "SeniorDesignOrg/CH-Full-Demo",
+"authHeader": "codehounduser:password123",
+"fullReview": true,
+"groovyScript": "../src/main/groovy/MethodTooManyArgs.groovy", 
+"comment": "This method has too many arguments",
+"groovyExe": "/usr/bin/groovy"
+}

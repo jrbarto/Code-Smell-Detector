@@ -1,10 +1,14 @@
 package com.codesmell;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -22,16 +26,51 @@ public class Runner {
     private final String REVIEW_BODY = "The automated 'Code Hound' tool found issues "
             + "with this pull request.";
     private final String API_URL = "https://api.github.com";
-    private File groovyFile;
+    private File groovyScript;
     private String repoPath;
     private String comment;
+    private boolean fullReview;
+    private String groovyExe;
     private GHRestClient restClient;
 
-    public Runner(String groovyPath, String repoPath, String authHeader, String comment) {
-        this.groovyFile = new File(groovyPath);
-        this.repoPath = repoPath;
-        this.comment = "[Code Hound Automated Comment]\n" + comment;
-        this.restClient = new GHRestClient(API_URL, authHeader);
+    public Runner(String json) {
+        String jsonContent = readFile(json);
+
+        try {
+            JSONObject jsonObj = new JSONObject(jsonContent);
+            String repoPath = jsonObj.getString("repoPath");
+            String authHeader = jsonObj.getString("authHeader");
+            String groovyScript = jsonObj.getString("groovyScript");
+            String comment = jsonObj.getString("comment");
+            boolean fullReview = jsonObj.getBoolean("fullReview");
+
+            if (jsonObj.has("groovyExe")) {
+                String groovyExe = jsonObj.getString("groovyExe");
+                this.groovyExe = groovyExe;
+            }
+
+            this.repoPath = repoPath;
+            this.groovyScript = new File(groovyScript);
+            this.comment = "[Code Hound Automated Commment]\n" + comment;
+            this.fullReview = fullReview;
+            this.restClient = new GHRestClient(API_URL, authHeader);
+        }
+        catch (JSONException ex) {
+            System.out.println("[Error] Failed to parse json content : " + jsonContent);
+            System.out.println(ex.getMessage());
+            System.exit(1);
+        }
+    }
+
+    public void execute() throws JSONException, IOException {
+        if (fullReview) {
+            /* Execute review on all java files in the repository */
+            executeRepoReview();
+        }
+        else {
+            /* Execute review on java files in the pull request */
+            executePullReview();
+        }
     }
 
     /**
@@ -62,7 +101,7 @@ public class Runner {
         System.out.println();
         for (GHFile ghFile : pullRequestFiles) {
             File sourceFile = ghFile.getTempFile();
-            FileParser parser = new FileParser(groovyFile, sourceFile);
+            FileParser parser = new FileParser(groovyScript, sourceFile, groovyExe);
             String procOutput = parser.runGroovyCommand(ghFile.getPath());
 
             /* Find positions (line numbers) referenced in procOutput */
@@ -132,11 +171,11 @@ public class Runner {
 
         String lineViolations = "";
         System.out.println("[Action] Reviewing repository '" + repoPath + "' using groovy file '"
-                + groovyFile.getName() + "...");
+                + groovyScript.getName() + "...");
         System.out.println();
         for (GHFile ghFile : repoFiles) {
             File sourceFile = ghFile.getTempFile();
-            FileParser parser = new FileParser(groovyFile, sourceFile);
+            FileParser parser = new FileParser(groovyScript, sourceFile, groovyExe);
             String procOutput = parser.runGroovyCommand(ghFile.getPath());
 
             /* Find positions (line numbers) referenced in procOutput */
@@ -165,5 +204,33 @@ public class Runner {
      */
     public void cleanUp() {
         restClient.closeClient();
+    }
+
+    /**
+     * Read the contents of a file
+     * @param filePath
+     * @return
+     */
+    private String readFile(String filePath) {
+        String text = "";
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            StringBuilder builder = new StringBuilder();
+
+            String currLine = reader.readLine();
+            while (currLine != null) {
+                builder.append(currLine);
+                currLine = reader.readLine();
+            }
+
+            text = builder.toString();
+        }
+        catch (IOException ex) {
+            System.out.println("[Error] Failed to read JSON file. " + filePath);
+            System.exit(1);
+        }
+
+        return text;
     }
 }

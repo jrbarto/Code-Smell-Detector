@@ -10,30 +10,20 @@ import org.codehaus.jettison.json.JSONException;
 public class Main {
 
     public static void main(String[] args) {
-        if (args.length < 5) {
-            System.out.println("[Error] Missing groovy file, owner, or repo arguments.\n"
+        if (args.length < 1) {
+            System.out.println("[Error] Missing json file path argument.\n"
                     + "[Solution] Please run in the format "
-                    + "'CodeSniffer.jar /path/to/groovyfile repoPath username:password comment true/false'");
+                    + "'CodeSniffer.jar /path/to/json'");
             System.exit(1);
         }
-        String groovyFile = args[0];
-        String repoPath = args[1];    // Full path to the repo 'Org/RepoName'
-        String authHeader = args[2]; // Authorization header... Will be Base64 encoded if not already
-        String comment = args[3];
-        boolean fullReview = Boolean.valueOf(args[4]); // Whether or not to execute the review on the full repo
-        Runner sniffRunner = new Runner(groovyFile, repoPath, authHeader, comment);
+
+        String jsonPath = args[0];
+        Runner sniffRunner = new Runner(jsonPath);
 
         try {
             long startTime = System.currentTimeMillis();
 
-            if (fullReview) {
-                /* Execute review on all java files in the repository */
-                sniffRunner.executeRepoReview();
-            }
-            else {
-                /* Execute review on java files in the pull request */
-                sniffRunner.executePullReview();
-            }
+            sniffRunner.execute();
 
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
