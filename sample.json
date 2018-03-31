@@ -4,12 +4,16 @@
 "fullReview": true,
 "scripts": [
   {
-  "path": "/home/jeffrey/Documents/workspace-github/Code-Smell-Detector/src/main/groovy/MethodTooManyArgs.groovy", 
+  "path": "../src/main/groovy/MethodTooManyArgs.groovy", 
   "comment": "This method has too many arguments"
   },
   {
-  "path": "/home/jeffrey/Documents/workspace-github/Code-Smell-Detector/src/main/groovy/LongMethodSniffer.groovy",
+  "path": "../src/main/groovy/LongMethodSniffer.groovy",
   "comment": "This method is too long."
+  },
+  {
+  "path": "../src/main/groovy/LargeClassSniffer.groovy",
+  "comment": "This class is too large."
   }
 ]
 }
