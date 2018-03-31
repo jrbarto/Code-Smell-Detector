@@ -29,7 +29,7 @@ public class Runner {
     private String repoPath;
     private Map<String, String> scripts;
     private boolean fullReview;
-    private String groovyHome;
+    private String groovyExe;
     private GHRestClient restClient;
 
     public Runner(String json) {
@@ -42,9 +42,9 @@ public class Runner {
             boolean fullReview = jsonObj.getBoolean("fullReview");
             JSONArray scripts = jsonObj.getJSONArray("scripts");
 
-            if (jsonObj.has("groovyHome")) {
-                String groovyHome = jsonObj.getString("groovyHome");
-                this.groovyHome = groovyHome;
+            if (jsonObj.has("groovyExe")) {
+                String groovyExe = jsonObj.getString("groovyExe");
+                this.groovyExe = groovyExe;
             }
 
             this.repoPath = repoPath;
@@ -54,9 +54,9 @@ public class Runner {
 
             for (int i = 0; i < scripts.length(); i++) {
                 JSONObject script = scripts.getJSONObject(i);
-                String groovyPath = script.getString("path");
+                String scriptPath = script.getString("path");
                 String comment = "[Code Hound Automated Comment]\n" + script.getString("comment");
-                this.scripts.put(groovyPath, comment);
+                this.scripts.put(scriptPath, comment);
             }
 
         }
@@ -106,7 +106,7 @@ public class Runner {
         System.out.println();
         for (GHFile ghFile : pullRequestFiles) {
             File sourceFile = ghFile.getTempFile();
-            FileParser parser = new FileParser(scripts, sourceFile, groovyHome);
+            FileParser parser = new FileParser(scripts, sourceFile, groovyExe);
             Map<List<String>, String> scriptOutput = parser.runGroovyScripts(ghFile.getPath());
 
             for (Entry<List<String>, String> entry : scriptOutput.entrySet()) {
@@ -181,7 +181,7 @@ public class Runner {
         System.out.println();
         for (GHFile ghFile : repoFiles) {
             File sourceFile = ghFile.getTempFile();
-            FileParser parser = new FileParser(scripts, sourceFile, groovyHome);
+            FileParser parser = new FileParser(scripts, sourceFile, groovyExe);
             Map<List<String>, String> scriptOutput = parser.runGroovyScripts(ghFile.getPath());
 
             for (Entry<List<String>, String> entry : scriptOutput.entrySet()) {
